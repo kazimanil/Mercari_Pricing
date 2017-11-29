@@ -18,10 +18,15 @@ train$shipping<-as.factor(train$shipping)
 
 #Condition name
 train['Cond_Name']<-ifelse(train$item_condition_id==1,"New","")
-train['Cond_Name']<-ifelse(train$item_condition_id==2,"Good Condition",train$V12)
-train['Cond_Name']<-ifelse(train$item_condition_id==3,"Used",train$V12)
-train['Cond_Name']<-ifelse(train$item_condition_id==4,"Slightly Damaged",train$V12)
-train['Cond_Name']<-ifelse(train$item_condition_id==5,"Highly Damaged",train$V12)
+train['Cond_Name']<-ifelse(train$item_condition_id==2,"Good Condition",train$Cond_Name)
+train['Cond_Name']<-ifelse(train$item_condition_id==3,"Used",train$Cond_Name)
+train['Cond_Name']<-ifelse(train$item_condition_id==4,"Slightly Damaged",train$Cond_Name)
+train['Cond_Name']<-ifelse(train$item_condition_id==5,"Highly Damaged",train$Cond_Name)
+# mean(train[train$Cond_Name=="New",]$price)
+# mean(train[train$Cond_Name=="Good Condition",]$price)
+# mean(train[train$Cond_Name=="Used",]$price)
+# mean(train[train$Cond_Name=="Slightly Damaged",]$price)
+# mean(train[train$Cond_Name=="Highly Damaged",]$price)
 
 
 #No brand name
@@ -39,36 +44,46 @@ train['Len_Name']<-str_length(train$name)
 #Length of description
 train['Len_Desc']<-str_length(train$item_description)
 
-#Brand name filling with description
+#Brand name filling with description/name
+train[grepl(c("sephora","Sephora"),train$name)&train$Has_Brand=="NoName",]
+train[grepl(c("sephora","Sephora"),train$item_description)&train$Has_Brand=="NoName",]
 
-#Size variable?
-any(sapply(c("XS","xsmall"), function(x) grepl(x, train$item_description)))
-train['Size']<-ifelse(grepl(c("XS","xsmall"),train$item_description),"XS",train$V18)
-train['Size']<-ifelse(grepl(c("S","small"),train$item_description),"S",train$V18)
-train['Size']<-ifelse(grepl(c("M","medium"),train$item_description),"S",train$V18)
-train['Size']<-ifelse(grepl(c("L","large"),train$item_description),"S",train$V18)
-train['Size']<-ifelse(grepl(c("XL","xlarge"),train$item_description),"S",train$V18)
+#Bundle separation
+sum(grepl(c("bundle","Bundle"),train$name))
+
+#Size variable? 
+#any(sapply(c("XS","xsmall"), function(x) grepl(x, train$item_description)))
+train['Size']<-ifelse(grepl(c("xsmall","Xsmall"),train$item_description),"XS","")
+train['Size']<-ifelse(grepl(c("small","Small"),train$item_description),"S",train$Size)
+train['Size']<-ifelse(grepl(c("medium","Medium"),train$item_description),"M",train$Size)
+train['Size']<-ifelse(grepl(c("large","Large"),train$item_description),"L",train$Size)
+train['Size']<-ifelse(grepl(c("xlarge","Xlarge","Xl"),train$item_description),"XL",train$Size)
+# mean(train[train$Size=="XS",]$price)
+# mean(train[train$Size=="S",]$price)
+# mean(train[train$Size=="M",]$price)
+# mean(train[train$Size=="L",]$price)
+# mean(train[train$Size=="XL",]$price)
+# mean(train[train$Size=="",]$price)
 
 #Authentic
 train['Is_Auth']<-ifelse(grepl("authentic",train$item_description),"auth","")
-mean(train[train$V19=="auth",]$price)
-mean(train[train$V19!="auth",]$price)
+# mean(train[train$Is_Auth=="auth",]$price)
+# mean(train[train$Is_Auth!="auth",]$price)
 
 #No description
 train['Has_Desc']<-ifelse(grepl("No description",train$item_description),"nodesc","")
-mean(train[train$V20=="nodesc",]$price)
-mean(train[train$V20!="nodesc",]$price)
+# mean(train[train$Has_Desc=="nodesc",]$price)
+# mean(train[train$Has_Desc!="nodesc",]$price)
 
 
 #Log transformation?
-
+train['Log_Price']<-log(train$price)
 
 #Goygoy
 summary(train)
 str(train)
 
-a<-train[train$item_condition_id==2,]
-
+#Plot
 plot(train$item_condition_id,train$price)
-
+plot(train$item_condition_id,train$Log_Price)
 
