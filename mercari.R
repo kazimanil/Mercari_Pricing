@@ -16,6 +16,10 @@ train[c('Cat1','Cat2','Cat3')]<-data.frame(str_split_fixed(train$category_name,"
 train$item_condition_id<-as.factor(train$item_condition_id)
 train$shipping<-as.factor(train$shipping)
 
+#Mean values
+catmean<-data.table(train)[,mean(price),by=list(Cat1,Cat2,Cat3)]
+brandmean<-data.table(train)[,mean(price),by=brand_name]
+
 #Condition name
 train['Cond_Name']<-ifelse(train$item_condition_id==1,"New","")
 train['Cond_Name']<-ifelse(train$item_condition_id==2,"Good Condition",train$Cond_Name)
@@ -54,10 +58,10 @@ sum(grepl(c("bundle","Bundle"),train$name))
 #Size variable? 
 #any(sapply(c("XS","xsmall"), function(x) grepl(x, train$item_description)))
 train['Size']<-ifelse(grepl(c("xsmall","Xsmall"),train$item_description),"XS","")
-train['Size']<-ifelse(grepl(c("small","Small"),train$item_description),"S",train$Size)
-train['Size']<-ifelse(grepl(c("medium","Medium"),train$item_description),"M",train$Size)
-train['Size']<-ifelse(grepl(c("large","Large"),train$item_description),"L",train$Size)
-train['Size']<-ifelse(grepl(c("xlarge","Xlarge","Xl"),train$item_description),"XL",train$Size)
+train['Size']<-ifelse(grepl(c(" small ","Small "),train$item_description),"S",train$Size)
+train['Size']<-ifelse(grepl(c(" medium ","Medium "),train$item_description),"M",train$Size)
+train['Size']<-ifelse(grepl(c(" large ","Large "),train$item_description),"L",train$Size)
+train['Size']<-ifelse(grepl(c(" xlarge ","Xlarge ","Xl"),train$item_description),"XL",train$Size)
 # mean(train[train$Size=="XS",]$price)
 # mean(train[train$Size=="S",]$price)
 # mean(train[train$Size=="M",]$price)
@@ -75,9 +79,47 @@ train['Has_Desc']<-ifelse(grepl("No description",train$item_description),"nodesc
 # mean(train[train$Has_Desc=="nodesc",]$price)
 # mean(train[train$Has_Desc!="nodesc",]$price)
 
+#Color ?transformation table?
+train['Color']<-ifelse(grepl(" white ",train$item_description)|grepl(" white ",train$item_description),"white","")
+train['Color']<-ifelse(grepl(" red ",train$item_description)|grepl(" red ",train$item_description),"red",train$Color)
+train['Color']<-ifelse(grepl(" blue ",train$item_description)|grepl(" blue ",train$item_description),"blue",train$Color)
+train['Color']<-ifelse(grepl(" green ",train$item_description)|grepl(" green ",train$item_description),"green",train$Color)
+train['Color']<-ifelse(grepl(" brown ",train$item_description)|grepl(" brown ",train$item_description),"brown",train$Color)
+train['Color']<-ifelse(grepl(" black ",train$item_description)|grepl(" black ",train$item_description),"black",train$Color)
+train['Color']<-ifelse(grepl(" purple ",train$item_description)|grepl(" purple ",train$item_description),"purple",train$Color)
+train['Color']<-ifelse(grepl(" pink ",train$item_description)|grepl(" pink ",train$item_description),"pink",train$Color)
+train['Color']<-ifelse(grepl(" orange ",train$item_description)|grepl(" orange ",train$item_description),"orange",train$Color)
+train['Color']<-ifelse(grepl(" gray ",train$item_description)|grepl(" gray ",train$item_description),"gray",train$Color)
+train['Color']<-ifelse(grepl(" grey ",train$item_description)|grepl(" grey ",train$item_description),"gray",train$Color)
+train['Color']<-ifelse(grepl(" beige ",train$item_description)|grepl(" beige ",train$item_description),"beige",train$Color)
+
+data.table(train)[,.N,by=Color]
+
+#Dark/Light
+sum(grepl("light",train$item_description))
+sum(grepl(" light ",train$item_description))
+
+#bundle products needs to be separated or eliminated
+train['IsBundle']<-ifelse(grepl("bundle",train$item_description)|grepl("Bundle",train$item_description)|grepl("bundle",train$name)|grepl("Bundle",train$name),1,0)
+
+#Others ??
+train[train$Cat1=="Others",]
+train[train$Cat2=="Others",]
+train[train$Cat3=="Others",]
+
+#Descomposing categoricals
+
 
 #Log transformation?
 train['Log_Price']<-log(train$price)
+
+#Outlier elimination/fill with mean
+#0 price
+a<-train[train$price==0,]
+#"Blank category name"
+a<-train[train$category_name=="",]
+
+
 
 #Goygoy
 summary(train)
