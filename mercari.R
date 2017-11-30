@@ -5,11 +5,15 @@ path<-"C:/Users/fatih.dereli/Desktop/mercari/"
 
 setwd(path)
 
-train<-read.delim("train.tsv", header=TRUE, sep="\t")
+train<-fread(paste0(path,"train.tsv"), stringsAsFactors = FALSE)
 
-test<-read.delim("test.tsv", header=TRUE, sep="\t")
+test <- fread(paste0(path,"test.tsv"), stringsAsFactors = FALSE)
 
 sample_submission<-read.delim("sample_submission.csv", header=TRUE, sep=",")
+
+train<-data.frame(train)
+
+test<-data.table(test)
 
 #Separating category_name column
 train[c('Cat1','Cat2','Cat3')]<-data.frame(str_split_fixed(train$category_name,"/",3))
