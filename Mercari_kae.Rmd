@@ -39,7 +39,7 @@ train <- train[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/"
 There are `r train[shipping == 1, .N, .(shipping)][,2]$N` products that has free-shipping and `r train[shipping == 0, .N, .(shipping)][,2]$N` otherwise.
 There are `r length(unique(train$brand_name))` unique different brands.
 
-There are also 5 different conditions, "1" is the most frequent, then the rest as numeric order.
+There are also 5 different conditions, "1" is the most frequent, then the rest as numeric order. 
 It is thought that. 1 is brand new / unused and the rest are in decreasing order.
 ```{r echo = FALSE}
 train[, .N, .(item_condition_id)][order(item_condition_id)]
