@@ -63,4 +63,3 @@ train_name <- tm_map(train_name, stripWhitespace) # Eliminate extra white spaces
 ```{r}
 # wordcloud(train_name)
 ```
-
