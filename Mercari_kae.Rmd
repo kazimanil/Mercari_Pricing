@@ -1,4 +1,17 @@
-# Required Libraries & Functions ----
+---
+title: "Mercari EDA"
+author: "Kazim Anil EREN"
+date: "1 Aralık 2017"
+output: html_document
+---
+This Markdown file is generated to describe the work done for the **Mercari Pricing** Case.
+
+## Required Libraries & Functions
+
+Şimdilik açık bıraktım, sonrasında echo = FALSE, seçeneğiyle kodların görünmesini engelleyebilir. 
+Bu kısma yorumlarımızı yazabiliriz.
+
+```{r results = 'hide', message = FALSE} 
 rm(list = ls()); gc()
 library("tm")
 library("SnowballC")
@@ -6,23 +19,36 @@ library("wordcloud")
 library("RColorBrewer")
 library("stringr")
 toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
+```
 
-# Data Input -----
+## Data Input
+
+```{r results = 'hide'}
 test  <- fread(input = "test.tsv", sep = "\t")
 train <- fread(input = "train.tsv", sep = "\t")
 test  <- test[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,1],
 										 H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
 										 H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
 train <- train[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,1],
-											H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
-											H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
-# EDA ----
-train[, .N, .(shipping)]          # 663100 shipping-free, 819435 shipping-paid
-train[, .N, .(item_condition_id)] # 5 different conditions, "1" is the most frequent, then the rest as numeric order.
-length(unique(train$brand_name))  # 4310 different brands
+			 							  H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
+			  						  H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
+```
 
-# Text Mining Process ----
-train_name <- Corpus(VectorSource(train$name))
+## Exploraty Data Analysis: Basics
+
+There are `r train[shipping == 1, .N, .(shipping)][,2]$N` products that has free-shipping and `r train[shipping == 0, .N, .(shipping)][,2]$N` otherwise.
+There are `r length(unique(train$brand_name))` unique different brands.
+
+There are also 5 different conditions, "1" is the most frequent, then the rest as numeric order.
+It is thought that. 1 is brand new / unused and the rest are in decreasing order.
+```{r echo = FALSE}
+train[, .N, .(item_condition_id)][order(item_condition_id)]
+```
+
+## Text Mining Process
+
+```{r eval = FALSE}
+# train_name <- Corpus(VectorSource(train$name))
 # train_desc <- Corpus(VectorSource(train$item_description))
 train_name <- tm_map(train_name, content_transformer(tolower)) # Convert the text to lower case
 # train_name <- tm_map(train_name, removeNumbers) # Remove numbers
@@ -31,4 +57,9 @@ train_name <- tm_map(train_name, removeWords, stopwords("english")) # Remove eng
 train_name <- tm_map(train_name, removePunctuation) # Remove punctuations
 train_name <- tm_map(train_name, stripWhitespace) # Eliminate extra white spaces
 # train_name <- tm_map(train_name, stemDocument) # Text stemming
+```
+
+```{r}
 # wordcloud(train_name)
+```
+
