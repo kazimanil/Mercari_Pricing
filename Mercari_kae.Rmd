@@ -1,15 +1,12 @@
 ---
 title: "Mercari EDA"
 author: "Kazim Anil EREN"
-date: "1 Aralık 2017"
+date: "3 Aralık 2017"
 output: html_document
 ---
 This Markdown file is generated to describe the work done for the **Mercari Pricing** Case.
 
 ## Required Libraries & Functions
-
-Şimdilik açık bıraktım, sonrasında echo = FALSE, seçeneğiyle kodların görünmesini engelleyebilir. 
-Bu kısma yorumlarımızı yazabiliriz.
 
 ```{r results = 'hide', message = FALSE} 
 rm(list = ls()); gc()
@@ -26,30 +23,66 @@ toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
 ```{r results = 'hide'}
 test  <- fread(input = "test.tsv", sep = "\t")
 train <- fread(input = "train.tsv", sep = "\t")
-test  <- test[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,1],
-										 H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
-										 H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
+
 train <- train[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,1],
 			 							  H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
 			  						  H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
+train[, shipping := as.factor(shipping)]
+train[, item_condition_id := as.factor(item_condition_id)]
+train[, category_name := NULL]
+
+test  <- test[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,1],
+										 H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
+										 H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
+test[, shipping := as.factor(shipping)]
+test[, item_condition_id := as.factor(item_condition_id)]
+test[, category_name := NULL]
 ```
 
 ## Exploraty Data Analysis: Basics
 
-There are `r train[shipping == 1, .N, .(shipping)][,2]$N` products that has free-shipping and `r train[shipping == 0, .N, .(shipping)][,2]$N` otherwise.
 There are `r length(unique(train$brand_name))` unique different brands.
 
-Also 5 different conditions, "1" is the most frequent, then the rest as numeric order. 
-It is thought that. 1 is brand new / unused and the rest are in decreasing order.
+Also 5 different conditions, "1" is the most frequent, then the rest as numeric order. It is thought that. 1 is brand new / unused and the rest are in decreasing order.
 ```{r echo = FALSE}
 train[, .N, .(item_condition_id)][order(item_condition_id)]
+```
+
+```{r echo = FALSE}
+ggplot(data = train[price < 100], aes(x = item_condition_id, y = price)) + geom_boxplot()
+```
+
+Let's see the summary statistics for the price vector as well.
+```{r echo = FALSE}
+summary(train$price)
+```
+
+```{r echo = FALSE}
+hist(train[price < 100]$price)
+```
+
+Categories may have significant effect on prices. There are `r train[, .N, .(H1, H2, H3)][, .N]` different H3 level categories under `r train[, .N, .(H1)][, .N]` different H1 level categories and `r train[, .N, .(H1, H2)][, .N]` H2 level categories.
+```{r echo = FALSE}
+ggplot(data = train, aes(x = H1, y = price)) + geom_boxplot()
+```
+
+Let's focus on the prices below 100 since there are many outliers.
+```{r echo = FALSE}
+ggplot(data = train[price < 100], aes(x = H1, y = price)) + geom_boxplot()
+```
+
+Next, lets check if free-shipping can affect the prices. There are `r train[shipping == 1, .N, .(shipping)][,2]$N` products that has free-shipping and `r train[shipping == 0, .N, .(shipping)][,2]$N` otherwise.
+
+```{r echo = FALSE}
+ggplot(data = train[price < 100], aes(x = shipping, y = price)) + geom_boxplot()
 ```
 
 ## Text Mining Process
 
 ```{r eval = FALSE}
-# train_name <- Corpus(VectorSource(train$name))
+train_name <- Corpus(VectorSource(train$name))
 # train_desc <- Corpus(VectorSource(train$item_description))
+
 train_name <- tm_map(train_name, content_transformer(tolower)) # Convert the text to lower case
 # train_name <- tm_map(train_name, removeNumbers) # Remove numbers
 train_name <- tm_map(train_name, removeWords, stopwords("english")) # Remove english common stopwords
