@@ -24,19 +24,30 @@ toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
 test  <- fread(input = "test.tsv", sep = "\t")
 train <- fread(input = "train.tsv", sep = "\t")
 
+train[, ':='(item_description = as.factor(tolower(item_description)),
+						 category_name    = as.factor(tolower(category_name)),
+						 name             = as.factor(tolower(name)))]
 train <- train[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,1],
 			 							  H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
 			  						  H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
 train[, shipping := as.factor(shipping)]
 train[, item_condition_id := as.factor(item_condition_id)]
 train[, category_name := NULL]
+train <- train[price != 0] # No item can be sold for no fee.
+train[, ':='(desc_len = str_length(item_description),
+						 desc_cnt = str_count(item_description))]
 
+test[, ':='(item_description = as.factor(tolower(item_description)),
+		 			  category_name    = as.factor(tolower(category_name)),
+						name             = as.factor(tolower(name)))]
 test  <- test[, `:=`(H1 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,1],
 										 H2 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,2],
 										 H3 = str_split_fixed(string = category_name, pattern = "/", n = 3)[,3])]
 test[, shipping := as.factor(shipping)]
 test[, item_condition_id := as.factor(item_condition_id)]
 test[, category_name := NULL]
+test[, ':='(desc_len = str_length(item_description),
+						desc_cnt = str_count(item_description))]
 ```
 
 ## Exploraty Data Analysis: Basics
@@ -71,6 +82,16 @@ Let's focus on the prices below 100 since there are many outliers.
 ggplot(data = train[price < 100], aes(x = H1, y = price)) + geom_boxplot()
 ```
 
+```{r echo = FALSE}
+x <- unique(train$H1)
+for(i in 1:length(x)){
+	print(paste0("Next price summary is for ", x[i], "H1 group."))
+	print(summary(train[H1 == x[i]]$price))
+}
+rm(x)
+```
+
+
 Next, lets check if free-shipping can affect the prices. There are `r train[shipping == 1, .N, .(shipping)][,2]$N` products that has free-shipping and `r train[shipping == 0, .N, .(shipping)][,2]$N` otherwise.
 
 ```{r echo = FALSE}
@@ -89,10 +110,10 @@ train_name <- tm_map(train_name, removeWords, stopwords("english")) # Remove eng
 # train_name <- tm_map(train_name, removeWords, c("blabla1", "blabla2")) # Remove your own stop word: specify your stopwords as a character vector
 train_name <- tm_map(train_name, removePunctuation) # Remove punctuations
 train_name <- tm_map(train_name, stripWhitespace) # Eliminate extra white spaces
-# train_name <- tm_map(train_name, stemDocument) # Text stemming
+# train_name <- tm_map(train_name, stemDocument) # Text stemming. 
 ```
 
 
 ```{r}
-# wordcloud(train_name)
+wordcloud()
 ```
