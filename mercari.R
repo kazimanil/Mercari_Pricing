@@ -1,5 +1,6 @@
 library(stringr)
 library(data.table)
+library(qdap)
 
 path<-"C:/Users/fatih.dereli/Desktop/mercari/"
 
@@ -106,7 +107,7 @@ sum(grepl(" light ",train$item_description))
 #bundle products needs to be separated or eliminated
 train['IsBundle']<-ifelse(grepl("bundle",train$item_description)|grepl("Bundle",train$item_description)|grepl("bundle",train$name)|grepl("Bundle",train$name),1,0)
 
-#Others ??
+#Others ?eliminate/transform?
 train[train$Cat1=="Others",]
 train[train$Cat2=="Others",]
 train[train$Cat3=="Others",]
@@ -123,6 +124,8 @@ a<-train[train$price==0,]
 #"Blank category name"
 a<-train[train$category_name=="",]
 
+#bag of words
+freq_terms(train$item_description,100)
 
 
 #Goygoy
@@ -132,4 +135,6 @@ str(train)
 #Plot
 plot(train$item_condition_id,train$price)
 plot(train$item_condition_id,train$Log_Price)
+
+a<-train[train$IsBundle==1,]
 
