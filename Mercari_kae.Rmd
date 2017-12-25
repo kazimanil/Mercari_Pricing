@@ -36,6 +36,11 @@ train[, category_name := NULL]
 train <- train[price != 0] # No item can be sold for no fee.
 train[, ':='(desc_len = str_length(item_description),
 						 desc_cnt = str_count(item_description))]
+source("categorize.R")
+train <- merge(train, train[, .(NH3 = .N), .(H1, H2, H3)], by = c("H1", "H2", "H3"))
+train <- merge(train, train[NH3 < 1000, .(NH2 = .N), .(H1, H2)], by = c("H1", "H2"))
+train <- merge(train, train[NH2 < 1000, .(NH1 = .N), .(H1)], by = c("H1"))
+train[, category := categorize(H1, H2, H3, NH2, NH3)]
 
 test[, ':='(item_description = as.factor(tolower(item_description)),
 		 			  category_name    = as.factor(tolower(category_name)),
@@ -48,6 +53,13 @@ test[, item_condition_id := as.factor(item_condition_id)]
 test[, category_name := NULL]
 test[, ':='(desc_len = str_length(item_description),
 						desc_cnt = str_count(item_description))]
+
+test <- merge(test, train[, .N ,.(H1, H2, H3, NH2, NH3)][, 1:5], by = c("H1", "H2", "H3"))
+test[, category := categorize(H1, H2, H3, NH2, NH3)]
+
+train[, `:=`(NH1 = NULL, NH2 = NULL, NH3 = NULL)]
+test[, `:=`(NH1 = NULL, NH2 = NULL, NH3 = NULL)]
+rm(categorize)
 ```
 
 ## Exploraty Data Analysis: Basics
