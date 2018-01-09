@@ -4,5 +4,5 @@
 
 ### Team Members
 
-* Ahmet Fatih Dereli
-* Kâzım Anıl Eren
+* [Ahmet Fatih Dereli](https://www.kaggle.com/fatihdereli)
+* [Kâzım Anıl Eren](https://www.kaggle.com/kazimanil)
