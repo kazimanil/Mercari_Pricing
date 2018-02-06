@@ -1,8 +1,9 @@
 library(stringr)
 library(data.table)
 library(qdap)
+library(xgboost)
 
-path<-"C:/Users/fatih.dereli/Desktop/mercari/"
+path<-"C:/Users/fatih.dereli/Desktop/fatih/mercari/"
 
 setwd(path)
 
@@ -138,3 +139,6 @@ plot(train$item_condition_id,train$Log_Price)
 
 a<-train[train$IsBundle==1,]
 
+model<-xgboost(data = mytrainingdatawithfeatures_sparse, label = mytraining_label_log_transformed, nrounds = 200, 
+objective = "reg:linear", eval_metric = "rmse", eta = 0.1, min_child_weight = 1.5, 
+max_depth = 12, gamma = 1,subsample = 0.5, colsample_bytree = 0.5)
